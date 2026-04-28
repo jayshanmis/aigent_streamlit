@@ -4,8 +4,26 @@ import requests
 import streamlit as st
 from databricks.sdk.core import Config
 
-# Databricks SDK auto-authentication (uses app service principal)
-cfg = Config()
+# --- Authentication ---
+# When running as a Databricks App, Config() auto-authenticates via the
+# service principal.  On Streamlit Community Cloud (or any external host),
+# we fall back to explicit host + PAT stored in Streamlit secrets or
+# environment variables.
+try:
+    cfg = Config()
+    # Force credential resolution so we fail fast if not configured
+    cfg.authenticate()
+except Exception:
+    host = os.environ.get("DATABRICKS_HOST") or st.secrets.get("DATABRICKS_HOST")
+    token = os.environ.get("DATABRICKS_TOKEN") or st.secrets.get("DATABRICKS_TOKEN")
+    if not host or not token:
+        st.error(
+            "Databricks credentials not found. "
+            "Please set **DATABRICKS_HOST** and **DATABRICKS_TOKEN** in "
+            "`.streamlit/secrets.toml` or as environment variables."
+        )
+        st.stop()
+    cfg = Config(host=host, token=token)
 
 # Serving endpoint name from app.yaml resource
 SERVING_ENDPOINT = os.environ.get("SERVING_ENDPOINT", "agents_isa632_7474656346303369-shanz3-getstarted_genai_retrevia")
