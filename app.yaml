@@ -1,0 +1,14 @@
+command:
+  - streamlit
+  - run
+  - app.py
+
+env:
+  - name: SERVING_ENDPOINT
+    valueFrom: serving-endpoint
+
+resources:
+  - name: serving-endpoint
+    serving_endpoint:
+      name: agents_isa632_7474656346303369-shanz3-getstarted_genai_retrevia
+      permission: CAN_QUERY
